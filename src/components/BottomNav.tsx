@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Home, Camera, Film, Play, User } from 'lucide-react';
+import { Home, Camera, Play, User, Smile } from 'lucide-react';
 
 export default function BottomNav() {
   const navigate = useNavigate();
@@ -42,13 +42,13 @@ export default function BottomNav() {
         </button>
 
         <button
-          onClick={() => navigate('/video')}
+          onClick={() => navigate('/moods')}
           className={`flex flex-col items-center p-2 ${
-            isActive('/video') ? 'text-yellow-400' : 'text-white/70 hover:text-white'
+            isActive('/moods') ? 'text-yellow-400' : 'text-white/70 hover:text-white'
           }`}
         >
-          <Film className="w-6 h-6" />
-          <span className="text-xs mt-1">Video</span>
+          <Smile className="w-6 h-6" />
+          <span className="text-xs mt-1">Moods</span>
         </button>
 
         <button

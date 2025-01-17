@@ -7,6 +7,7 @@ import HomePage from './components/HomePage';
 import BottomNav from './components/BottomNav';
 import MediaGallery from './components/MediaGallery';
 import Slideshow from './components/Slideshow';
+import Moods from './components/Moods';
 
 // Create a new component for the routes
 function AppRoutes() {
@@ -84,6 +85,14 @@ function AppRoutes() {
         element={
           <ProtectedRoute>
             <Slideshow />
+          </ProtectedRoute>
+        } 
+      />
+      <Route 
+        path="/moods" 
+        element={
+          <ProtectedRoute>
+            <Moods />
           </ProtectedRoute>
         } 
       />

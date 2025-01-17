@@ -1,7 +1,19 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { storage } from '../utils/storage';
 import { MediaItem } from '../types';
-import { Play, Image as ImageIcon, Film, Check, X, Layers, Pause, SkipBack, SkipForward, Minimize2, Maximize2 } from 'lucide-react';
+import { Play, Image as ImageIcon, Film, Check, X, Layers, Pause, SkipBack, SkipForward, Minimize2, Maximize2, Share2, Trash2 } from 'lucide-react';
+import { openDB } from 'idb';
+
+// Add initDB function
+const initDB = async () => {
+  return await openDB('partyCollageDB', 1, {
+    upgrade(db) {
+      if (!db.objectStoreNames.contains('mediaItems')) {
+        db.createObjectStore('mediaItems', { keyPath: 'id' });
+      }
+    },
+  });
+};
 
 export default function SlideshowSelection() {
   const [media, setMedia] = useState<MediaItem[]>(() => storage.get('media') || []);
@@ -82,6 +94,42 @@ export default function SlideshowSelection() {
     { type: 'photos', icon: ImageIcon, label: 'Photos Only' },
     { type: 'videos', icon: Film, label: 'Videos Only' }
   ] as const;
+
+  const handleShare = async (item: MediaItem, e: React.MouseEvent<HTMLButtonElement>) => {
+    e.stopPropagation();
+    try {
+      if (navigator.share) {
+        const blob = await fetch(item.url).then(r => r.blob());
+        const file = new File([blob], `party-moment.${item.type === 'photo' ? 'jpg' : 'mp4'}`, {
+          type: item.type === 'photo' ? 'image/jpeg' : 'video/mp4'
+        });
+
+        await navigator.share({
+          title: 'Party Moment',
+          text: item.hashtags?.join(' ') || 'Check out this party moment!',
+          files: [file]
+        });
+      } else {
+        const shareUrl = item.url;
+        window.open(shareUrl, '_blank');
+      }
+    } catch (error) {
+      console.error('Error sharing:', error);
+    }
+  };
+
+  const handleDelete = async (itemId: string, e: React.MouseEvent<HTMLButtonElement>) => {
+    e.stopPropagation();
+    if (window.confirm('Are you sure you want to delete this item?')) {
+      try {
+        const db = await initDB();
+        await db.delete('mediaItems', itemId);
+        setMedia(prev => prev.filter(item => item.id !== itemId));
+      } catch (error) {
+        console.error('Error deleting item:', error);
+      }
+    }
+  };
 
   if (showSlideshow) {
     return (
@@ -256,6 +304,24 @@ export default function SlideshowSelection() {
                   ) : (
                     <Film className="w-5 h-5 text-white" />
                   )}
+                </div>
+                
+                {/* Action buttons */}
+                <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                  <div className="flex gap-2">
+                    <button
+                      onClick={(e) => handleShare(item, e)}
+                      className="p-2 rounded-full bg-white/20 hover:bg-white/30 transition-colors"
+                    >
+                      <Share2 className="w-5 h-5 text-white" />
+                    </button>
+                    <button
+                      onClick={(e) => handleDelete(item.id, e)}
+                      className="p-2 rounded-full bg-white/20 hover:bg-white/30 transition-colors"
+                    >
+                      <Trash2 className="w-5 h-5 text-white" />
+                    </button>
+                  </div>
                 </div>
                 
                 {selectionMode === 'manual' && selectedMedia.includes(item.id) && (
